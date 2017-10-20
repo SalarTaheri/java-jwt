@@ -94,7 +94,8 @@ class ECDSAAlgorithm extends Algorithm {
             formatter.format("%02x ", derSignature[i]);
         }
         String hex = formatter.toString();
-        System.out.println("Converting DER to JOSE...");
+        System.out.println("Converting DER to JOSE... Original length: " + derSignature.length);
+
         System.out.println(hex);
         if (derSignature[0] != (byte) 0x30) {
             throw new SignatureException("The signature encoding was invalid. Expected encoding is DER.");
@@ -109,7 +110,6 @@ class ECDSAAlgorithm extends Algorithm {
             offset++;
         }
 
-
         //Convert to unsigned. Should match DER length - offset
         int encodedLength = derSignature[offset++] & 0xff;
         if (encodedLength != derSignature.length - offset) {
@@ -121,25 +121,36 @@ class ECDSAAlgorithm extends Algorithm {
 
         //Obtain R number length (Includes padding) and skip it
         int rLength = derSignature[offset++];
-        if (rLength > ecNumberSize) {
+        if (rLength > ecNumberSize + 1) {
             throw new SignatureException(String.format("Invalid R number size. Expected at most %d bytes but received %d", ecNumberSize, rLength));
         }
-        int rPadding = ecNumberSize - rLength;//countPadding(derSignature, offset, rLength);
+        int rPadding = ecNumberSize - rLength;
         //Retrieve R number
-        System.arraycopy(derSignature, offset, joseSignature, rPadding, rLength);
+        System.arraycopy(derSignature, offset + Math.max(-rPadding, 0), joseSignature, Math.max(rPadding, 0), rLength + Math.min(rPadding, 0));
 
         //Skip R number and 0x02
         offset += rLength + 1;
 
         //Obtain S number length. (Includes padding)
         int sLength = derSignature[offset++];
-        if (sLength > ecNumberSize) {
+        if (sLength > ecNumberSize + 1) {
             throw new SignatureException(String.format("Invalid S number size. Expected at most %d bytes but received %d", ecNumberSize, sLength));
         }
-        int sPadding = ecNumberSize - sLength;//countPadding(derSignature, offset, sLength);
+        int sPadding = ecNumberSize - sLength;
         //Retrieve R number
-        System.arraycopy(derSignature, offset, joseSignature, ecNumberSize + sPadding, sLength);
+        System.arraycopy(derSignature, offset + Math.max(-sPadding, 0), joseSignature, ecNumberSize + Math.max(sPadding, 0), sLength + Math.min(sPadding, 0));
 
+
+        formatter = new Formatter();
+        for (int i = 0; i < joseSignature.length; i++) {
+            if (i == joseSignature.length / 2) {
+                formatter.format("\n");
+            }
+            formatter.format("%02x ", joseSignature[i]);
+        }
+        hex = formatter.toString();
+        System.out.println("JOSE is... Original length: " + joseSignature.length);
+        System.out.println(hex);
         return joseSignature;
     }
 

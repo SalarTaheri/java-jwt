@@ -5,6 +5,9 @@ import com.auth0.jwt.exceptions.SignatureGenerationException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.interfaces.ECDSAKeyProvider;
 import org.apache.commons.codec.binary.Base64;
+import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsIn;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -14,9 +17,11 @@ import java.security.*;
 import java.security.interfaces.ECKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.util.Arrays;
 
 import static com.auth0.jwt.PemUtils.readPrivateKeyFromFile;
 import static com.auth0.jwt.PemUtils.readPublicKeyFromFile;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.internal.matchers.ThrowableMessageMatcher.hasMessage;
@@ -122,7 +127,7 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldFailECDSA256VerificationOnInvalidSignatureLength() throws Exception {
+    public void shouldFailECDSA256VerificationOnInvalidJOSESignatureLength() throws Exception {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA256withECDSA");
         exception.expectCause(isA(SignatureException.class));
@@ -237,7 +242,7 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldFailECDSA384VerificationOnInvalidSignatureLength() throws Exception {
+    public void shouldFailECDSA384VerificationOnInvalidJOSESignatureLength() throws Exception {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA384withECDSA");
         exception.expectCause(isA(SignatureException.class));
@@ -352,7 +357,7 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldFailECDSA512VerificationOnInvalidSignatureLength() throws Exception {
+    public void shouldFailECDSA512VerificationOnInvalidJOSESignatureLength() throws Exception {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA512withECDSA");
         exception.expectCause(isA(SignatureException.class));
@@ -749,4 +754,328 @@ public class ECDSAAlgorithmTest {
 
         assertThat(algorithm.getSigningKeyId(), is("keyId"));
     }
+
+    @Test
+    public void shouldSignAndVerifyWithECDSA256() throws Exception {
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+        String content256 = "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJhdXRoMCJ9";
+
+        for (int i = 0; i < 10; i++) {
+            byte[] signature = algorithm256.sign(content256.getBytes());
+            String signature256 = Base64.encodeBase64URLSafeString((signature));
+
+            String jwt = content256 + "." + signature256;
+            System.out.println(jwt);
+            algorithm256.verify(JWT.decode(jwt));
+        }
+    }
+
+    @Test
+    public void shouldSignAndVerifyWithECDSA384() throws Exception {
+        ECDSAAlgorithm algorithm384 = (ECDSAAlgorithm) Algorithm.ECDSA384((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_384, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_384, "EC"));
+        String content384 = "eyJhbGciOiJFUzM4NCJ9.eyJpc3MiOiJhdXRoMCJ9";
+
+        for (int i = 0; i < 10; i++) {
+            byte[] signature = algorithm384.sign(content384.getBytes());
+            String signature384 = Base64.encodeBase64URLSafeString((signature));
+
+            String jwt = content384 + "." + signature384;
+            System.out.println(jwt);
+            algorithm384.verify(JWT.decode(jwt));
+        }
+    }
+
+    @Test
+    public void shouldSignAndVerifyWithECDSA512() throws Exception {
+        ECDSAAlgorithm algorithm512 = (ECDSAAlgorithm) Algorithm.ECDSA512((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_512, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_512, "EC"));
+        String content512 = "eyJhbGciOiJFUzUxMiJ9.eyJpc3MiOiJhdXRoMCJ9";
+
+        for (int i = 0; i < 10; i++) {
+            byte[] signature = algorithm512.sign(content512.getBytes());
+            String signature512 = Base64.encodeBase64URLSafeString((signature));
+
+            String jwt = content512 + "." + signature512;
+            System.out.println(jwt);
+            algorithm512.verify(JWT.decode(jwt));
+        }
+    }
+
+    @Test
+    public void shouldDecodeECDSA256JOSE() throws Exception {
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+
+        //Without padding
+        byte[] joseSignature = createJOSESignature(32, false, false);
+        byte[] derSignature = algorithm256.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 32, false, false);
+
+        //With R padding
+        joseSignature = createJOSESignature(32, true, false);
+        derSignature = algorithm256.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 32, true, false);
+
+        //With S padding
+        joseSignature = createJOSESignature(32, false, true);
+        derSignature = algorithm256.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 32, false, true);
+
+        //With both paddings
+        joseSignature = createJOSESignature(32, true, true);
+        derSignature = algorithm256.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 32, true, true);
+    }
+
+    @Test
+    public void shouldDecodeECDSA256DER() throws Exception {
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+
+        //Without padding
+        byte[] derSignature = createDERSignature(32, false, false);
+        byte[] joseSignature = algorithm256.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 32, false, false);
+
+        //With R padding
+        derSignature = createDERSignature(32, true, false);
+        joseSignature = algorithm256.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 32, true, false);
+
+        //With S padding
+        derSignature = createDERSignature(32, false, true);
+        joseSignature = algorithm256.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 32, false, true);
+
+        //With both paddings
+        derSignature = createDERSignature(32, true, true);
+        joseSignature = algorithm256.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 32, true, true);
+    }
+
+    @Test
+    public void shouldDecodeECDSA384JOSE() throws Exception {
+        ECDSAAlgorithm algorithm384 = (ECDSAAlgorithm) Algorithm.ECDSA384((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_384, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_384, "EC"));
+
+        //Without padding
+        byte[] joseSignature = createJOSESignature(48, false, false);
+        byte[] derSignature = algorithm384.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 48, false, false);
+
+        //With R padding
+        joseSignature = createJOSESignature(48, true, false);
+        derSignature = algorithm384.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 48, true, false);
+
+        //With S padding
+        joseSignature = createJOSESignature(48, false, true);
+        derSignature = algorithm384.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 48, false, true);
+
+        //With both paddings
+        joseSignature = createJOSESignature(48, true, true);
+        derSignature = algorithm384.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 48, true, true);
+    }
+
+    @Test
+    public void shouldDecodeECDSA384DER() throws Exception {
+        ECDSAAlgorithm algorithm384 = (ECDSAAlgorithm) Algorithm.ECDSA384((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_384, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_384, "EC"));
+
+        //Without padding
+        byte[] derSignature = createDERSignature(48, false, false);
+        byte[] joseSignature = algorithm384.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 48, false, false);
+
+        //With R padding
+        derSignature = createDERSignature(48, true, false);
+        joseSignature = algorithm384.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 48, true, false);
+
+        //With S padding
+        derSignature = createDERSignature(48, false, true);
+        joseSignature = algorithm384.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 48, false, true);
+
+        //With both paddings
+        derSignature = createDERSignature(48, true, true);
+        joseSignature = algorithm384.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 48, true, true);
+    }
+
+    @Test
+    public void shouldDecodeECDSA512JOSE() throws Exception {
+        ECDSAAlgorithm algorithm512 = (ECDSAAlgorithm) Algorithm.ECDSA512((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_512, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_512, "EC"));
+
+        //Without padding
+        byte[] joseSignature = createJOSESignature(66, false, false);
+        byte[] derSignature = algorithm512.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 66, false, false);
+
+        //With R padding
+        joseSignature = createJOSESignature(66, true, false);
+        derSignature = algorithm512.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 66, true, false);
+
+        //With S padding
+        joseSignature = createJOSESignature(66, false, true);
+        derSignature = algorithm512.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 66, false, true);
+
+        //With both paddings
+        joseSignature = createJOSESignature(66, true, true);
+        derSignature = algorithm512.JOSEToDER(joseSignature);
+        assertValidDERSignature(derSignature, 66, true, true);
+    }
+
+    @Test
+    public void shouldDecodeECDSA512DER() throws Exception {
+        ECDSAAlgorithm algorithm512 = (ECDSAAlgorithm) Algorithm.ECDSA512((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_512, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_512, "EC"));
+
+        //Without padding
+        byte[] derSignature = createDERSignature(66, false, false);
+        byte[] joseSignature = algorithm512.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 66, false, false);
+
+        //With R padding
+        derSignature = createDERSignature(66, true, false);
+        joseSignature = algorithm512.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 66, true, false);
+
+        //With S padding
+        derSignature = createDERSignature(66, false, true);
+        joseSignature = algorithm512.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 66, false, true);
+
+        //With both paddings
+        derSignature = createDERSignature(66, true, true);
+        joseSignature = algorithm512.DERtoJOSE(derSignature);
+        assertValidJOSESignature(joseSignature, 66, true, true);
+    }
+
+
+    //Test Helpers
+    private void assertValidJOSESignature(byte[] joseSignature, int numberSize, boolean withRPadding, boolean withSPadding) {
+        Assert.assertThat(joseSignature, is(Matchers.notNullValue()));
+        Assert.assertThat(numberSize, is(IsIn.oneOf(32, 48, 66)));
+
+        Assert.assertThat(joseSignature.length, is(numberSize * 2));
+
+        byte[] rCopy = Arrays.copyOfRange(joseSignature, 0, numberSize);
+        byte[] sCopy = Arrays.copyOfRange(joseSignature, numberSize, numberSize * 2);
+
+        byte[] rNumber = new byte[numberSize];
+        byte[] sNumber = new byte[numberSize];
+        Arrays.fill(rNumber, (byte) 0x11);
+        Arrays.fill(sNumber, (byte) 0x22);
+        if (withRPadding) {
+            rNumber[0] = (byte) 0;
+        }
+        if (withSPadding) {
+            sNumber[0] = (byte) 0;
+        }
+        Assert.assertThat(Arrays.equals(rNumber, rCopy), is(true));
+        Assert.assertThat(Arrays.equals(sNumber, sCopy), is(true));
+    }
+
+    private byte[] createDERSignature(int numberSize, boolean withRPadding, boolean withSPadding) {
+        Assert.assertThat(numberSize, is(IsIn.oneOf(32, 48, 66)));
+
+        int rLength = withRPadding ? numberSize - 1 : numberSize;
+        int sLength = withSPadding ? numberSize - 1 : numberSize;
+        int totalLength = 4 + rLength + 2 + sLength;
+
+        byte[] rNumber = new byte[rLength];
+        byte[] sNumber = new byte[sLength];
+        Arrays.fill(rNumber, (byte) 0x11);
+        Arrays.fill(sNumber, (byte) 0x22);
+
+        byte[] derSignature;
+        int offset = 0;
+        if (totalLength > 0x7f) {
+            totalLength++;
+            derSignature = new byte[totalLength];
+            //Start sequence and sign
+            derSignature[offset++] = (byte) 0x30;
+            derSignature[offset++] = (byte) 0x81;
+        } else {
+            derSignature = new byte[totalLength];
+            //Start sequence
+            derSignature[offset++] = (byte) 0x30;
+        }
+
+        //Sequence length
+        derSignature[offset++] = (byte) (totalLength - offset);
+
+        //R number
+        derSignature[offset++] = (byte) 0x02;
+        derSignature[offset++] = (byte) rLength;
+        System.arraycopy(rNumber, 0, derSignature, offset, rLength);
+        offset += rLength;
+
+        //S number
+        derSignature[offset++] = (byte) 0x02;
+        derSignature[offset++] = (byte) sLength;
+        System.arraycopy(sNumber, 0, derSignature, offset, sLength);
+
+        return derSignature;
+    }
+
+    public byte[] createJOSESignature(int numberSize, boolean withRPadding, boolean withSPadding) {
+        Assert.assertThat(numberSize, is(IsIn.oneOf(32, 48, 66)));
+
+        byte[] rNumber = new byte[numberSize];
+        byte[] sNumber = new byte[numberSize];
+        Arrays.fill(rNumber, (byte) 0x11);
+        Arrays.fill(sNumber, (byte) 0x22);
+        if (withRPadding) {
+            rNumber[0] = (byte) 0;
+        }
+        if (withSPadding) {
+            sNumber[0] = (byte) 0;
+        }
+        byte[] joseSignature = new byte[numberSize * 2];
+        System.arraycopy(rNumber, 0, joseSignature, 0, numberSize);
+        System.arraycopy(sNumber, 0, joseSignature, numberSize, numberSize);
+        return joseSignature;
+    }
+
+    public void assertValidDERSignature(byte[] derSignature, int numberSize, boolean withRPadding, boolean withSPadding) {
+        Assert.assertThat(derSignature, is(Matchers.notNullValue()));
+        Assert.assertThat(numberSize, is(IsIn.oneOf(32, 48, 66)));
+
+        int rLength = withRPadding ? numberSize - 1 : numberSize;
+        int sLength = withSPadding ? numberSize - 1 : numberSize;
+        int totalLength = 4 + rLength + 2 + sLength;
+        int offset = 0;
+
+        //Start sequence
+        Assert.assertThat(derSignature[offset++], is((byte) 0x30));
+        if (totalLength > 0x7f) {
+            //Add sign before sequence length
+            totalLength++;
+            Assert.assertThat(derSignature[offset++], is((byte) 0x81));
+        }
+        //Sequence length
+        Assert.assertThat(derSignature[offset++], is((byte) (totalLength - offset)));
+
+        //R number
+        Assert.assertThat(derSignature[offset++], is((byte) 0x02));
+        Assert.assertThat(derSignature[offset++], is((byte) rLength));
+        byte[] rCopy = Arrays.copyOfRange(derSignature, offset, offset + rLength);
+        offset += rLength;
+
+        //S number
+        Assert.assertThat(derSignature[offset++], is((byte) 0x02));
+        Assert.assertThat(derSignature[offset++], is((byte) sLength));
+        byte[] sCopy = Arrays.copyOfRange(derSignature, offset, offset + sLength);
+
+
+        byte[] rNumber = new byte[rLength];
+        byte[] sNumber = new byte[sLength];
+        Arrays.fill(rNumber, (byte) 0x11);
+        Arrays.fill(sNumber, (byte) 0x22);
+        Assert.assertThat(Arrays.equals(rNumber, rCopy), is(true));
+        Assert.assertThat(Arrays.equals(sNumber, sCopy), is(true));
+        Assert.assertThat(derSignature.length, is(totalLength));
+    }
+
+
 }
