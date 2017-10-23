@@ -403,7 +403,7 @@ public class ECDSAAlgorithmTest {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA256withECDSA");
         exception.expectCause(isA(SignatureException.class));
-        exception.expectCause(hasMessage(is("Invalid ECDSA signature format")));
+        exception.expectCause(hasMessage(is("Invalid ECDSA signature format.")));
 
         byte[] bytes = new byte[256];
         new SecureRandom().nextBytes(bytes);
@@ -753,6 +753,64 @@ public class ECDSAAlgorithmTest {
         Algorithm algorithm = new ECDSAAlgorithm("some-alg", "some-algorithm", 32, provider);
 
         assertThat(algorithm.getSigningKeyId(), is("keyId"));
+    }
+
+    @Test
+    public void shouldThrowOnDERSignatureConversionIfDoesNotStartWithCorrectSequenceByte() throws Exception {
+        exception.expect(SignatureException.class);
+        exception.expectMessage("Invalid DER signature format.");
+
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+        String content256 = "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJhdXRoMCJ9";
+
+        byte[] signature = algorithm256.sign(content256.getBytes());
+        signature[0] = (byte) 0x02;
+        algorithm256.DERtoJOSE(signature);
+    }
+
+    @Test
+    public void shouldThrowOnDERSignatureConversionIfDoesNotHaveExpectedLength() throws Exception {
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+        byte[] derSignature = createDERSignature(32, false, false);
+        int received = (int) derSignature[1];
+        received--;
+        derSignature[1] = (byte) received;
+        exception.expect(SignatureException.class);
+        exception.expectMessage(String.format("The signature length was invalid. Expected %d bytes but received %d", received + 1, received));
+
+        algorithm256.DERtoJOSE(derSignature);
+    }
+
+    @Test
+    public void shouldThrowOnDERSignatureConversionIfRNumberDoesNotHaveExpectedLength() throws Exception {
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+        byte[] derSignature = createDERSignature(32, false, false);
+        derSignature[3] = (byte) 34;
+        exception.expect(SignatureException.class);
+        exception.expectMessage(String.format("The R number length was invalid. Expected at most 33 bytes but received %d", 34));
+
+        algorithm256.DERtoJOSE(derSignature);
+    }
+
+    @Test
+    public void shouldThrowOnDERSignatureConversionIfSNumberDoesNotHaveExpectedLength() throws Exception {
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+        byte[] derSignature = createDERSignature(32, false, false);
+        derSignature[4 + 32 + 1] = (byte) 34;
+        exception.expect(SignatureException.class);
+        exception.expectMessage(String.format("The S number length was invalid. Expected at most 33 bytes but received %d", 34));
+
+        algorithm256.DERtoJOSE(derSignature);
+    }
+
+    @Test
+    public void shouldThrowOnJOSESignatureConversionIfDoesNotHaveExpectedLength() throws Exception {
+        ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
+        byte[] joseSignature = new byte[32 * 2 - 1];
+        exception.expect(SignatureException.class);
+        exception.expectMessage(String.format("The signature length was invalid. Expected 64 bytes but received 63", 32 * 2, 32 * 2 - 1));
+
+        algorithm256.JOSEToDER(joseSignature);
     }
 
     @Test

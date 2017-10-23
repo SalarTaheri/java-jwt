@@ -12,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
-import java.util.Formatter;
 
 class ECDSAAlgorithm extends Algorithm {
 
@@ -86,19 +85,8 @@ class ECDSAAlgorithm extends Algorithm {
 
     //Visible for testing
     byte[] DERtoJOSE(byte[] derSignature) throws SignatureException {
-        Formatter formatter = new Formatter();
-        for (int i = 0; i < derSignature.length; i++) {
-            if (derSignature[i] == 2) {
-                formatter.format("\n");
-            }
-            formatter.format("%02x ", derSignature[i]);
-        }
-        String hex = formatter.toString();
-        System.out.println("Converting DER to JOSE... Original length: " + derSignature.length);
-
-        System.out.println(hex);
         if (derSignature[0] != (byte) 0x30) {
-            throw new SignatureException("The signature encoding was invalid. Expected encoding is DER.");
+            throw new SignatureException("Invalid DER signature format.");
         }
 
         byte[] joseSignature = new byte[ecNumberSize * 2];
@@ -113,7 +101,7 @@ class ECDSAAlgorithm extends Algorithm {
         //Convert to unsigned. Should match DER length - offset
         int encodedLength = derSignature[offset++] & 0xff;
         if (encodedLength != derSignature.length - offset) {
-            throw new SignatureException(String.format("Invalid signature length. Expected %d bytes but received %d", derSignature.length - offset, encodedLength));
+            throw new SignatureException(String.format("The signature length was invalid. Expected %d bytes but received %d", derSignature.length - offset, encodedLength));
         }
 
         //Skip 0x02
@@ -122,7 +110,7 @@ class ECDSAAlgorithm extends Algorithm {
         //Obtain R number length (Includes padding) and skip it
         int rLength = derSignature[offset++];
         if (rLength > ecNumberSize + 1) {
-            throw new SignatureException(String.format("Invalid R number size. Expected at most %d bytes but received %d", ecNumberSize, rLength));
+            throw new SignatureException(String.format("The R number length was invalid. Expected at most %d bytes but received %d", ecNumberSize+1, rLength));
         }
         int rPadding = ecNumberSize - rLength;
         //Retrieve R number
@@ -134,23 +122,12 @@ class ECDSAAlgorithm extends Algorithm {
         //Obtain S number length. (Includes padding)
         int sLength = derSignature[offset++];
         if (sLength > ecNumberSize + 1) {
-            throw new SignatureException(String.format("Invalid S number size. Expected at most %d bytes but received %d", ecNumberSize, sLength));
+            throw new SignatureException(String.format("The S number length was invalid. Expected at most %d bytes but received %d", ecNumberSize+1, sLength));
         }
         int sPadding = ecNumberSize - sLength;
         //Retrieve R number
         System.arraycopy(derSignature, offset + Math.max(-sPadding, 0), joseSignature, ecNumberSize + Math.max(sPadding, 0), sLength + Math.min(sPadding, 0));
 
-
-        formatter = new Formatter();
-        for (int i = 0; i < joseSignature.length; i++) {
-            if (i == joseSignature.length / 2) {
-                formatter.format("\n");
-            }
-            formatter.format("%02x ", joseSignature[i]);
-        }
-        hex = formatter.toString();
-        System.out.println("JOSE is... Original length: " + joseSignature.length);
-        System.out.println(hex);
         return joseSignature;
     }
 
@@ -168,7 +145,7 @@ class ECDSAAlgorithm extends Algorithm {
 
         int length = 2 + rLength + 2 + sLength;
         if (length > 255) {
-            throw new SignatureException("Invalid ECDSA signature format");
+            throw new SignatureException("Invalid ECDSA signature format.");
         }
 
         byte[] derSignature;
