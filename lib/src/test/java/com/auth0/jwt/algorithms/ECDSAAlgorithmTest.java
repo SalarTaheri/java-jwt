@@ -62,7 +62,12 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldPassECDSA256VerificationWithDERSignature() throws Exception {
+    public void shouldThrowOnECDSA256VerificationWithDERSignature() throws Exception {
+        exception.expect(SignatureVerificationException.class);
+        exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA256withECDSA");
+        exception.expectCause(isA(SignatureException.class));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
+
         String jwt = "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJhdXRoMCJ9.MEYCIQDiJWTf5jS/hFPj/0hpCWn7x1n/h+xPMjKWCs9MMusS9AIhAMcFPJVLe2A9uvb8hl8sRO2IpGoKDRpDmyH14ixNPAHW";
         ECKey key = (ECKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC");
         Algorithm algorithm = Algorithm.ECDSA256(key);
@@ -77,7 +82,12 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldPassECDSA256VerificationWithDERSignatureWithBothKeys() throws Exception {
+    public void shouldThrowOnECDSA256VerificationWithDERSignatureWithBothKeys() throws Exception {
+        exception.expect(SignatureVerificationException.class);
+        exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA256withECDSA");
+        exception.expectCause(isA(SignatureException.class));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
+
         String jwt = "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJhdXRoMCJ9.MEYCIQDiJWTf5jS/hFPj/0hpCWn7x1n/h+xPMjKWCs9MMusS9AIhAMcFPJVLe2A9uvb8hl8sRO2IpGoKDRpDmyH14ixNPAHW";
         Algorithm algorithm = Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
         algorithm.verify(JWT.decode(jwt));
@@ -131,7 +141,7 @@ public class ECDSAAlgorithmTest {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA256withECDSA");
         exception.expectCause(isA(SignatureException.class));
-        exception.expectCause(hasMessage(is("The signature length was invalid. Expected 64 bytes but received 63")));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
 
         byte[] bytes = new byte[63];
         new SecureRandom().nextBytes(bytes);
@@ -177,7 +187,12 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldPassECDSA384VerificationWithDERSignature() throws Exception {
+    public void shouldThrowOnECDSA384VerificationWithDERSignature() throws Exception {
+        exception.expect(SignatureVerificationException.class);
+        exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA384withECDSA");
+        exception.expectCause(isA(SignatureException.class));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
+
         String jwt = "eyJhbGciOiJFUzM4NCJ9.eyJpc3MiOiJhdXRoMCJ9.MGUCMQDnRRTlUo10XXB/KRjyNAEqm+4dmh7ohkEmbk2+gHxtH6GdGDq2L4Idua+hG2Ut+ccCMH8CE2v/HCTMuk3pzAtoOtxkB8rXPK2KF6m8LUuEdCqPwF2yxVJn8ZxpzAur+DEv8w==";
         ECKey key = (ECKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_384, "EC");
         Algorithm algorithm = Algorithm.ECDSA384(key);
@@ -192,7 +207,12 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldPassECDSA384VerificationWithDERSignatureWithBothKeys() throws Exception {
+    public void shouldThrowOnECDSA384VerificationWithDERSignatureWithBothKeys() throws Exception {
+        exception.expect(SignatureVerificationException.class);
+        exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA384withECDSA");
+        exception.expectCause(isA(SignatureException.class));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
+
         String jwt = "eyJhbGciOiJFUzM4NCJ9.eyJpc3MiOiJhdXRoMCJ9.MGUCMQDnRRTlUo10XXB/KRjyNAEqm+4dmh7ohkEmbk2+gHxtH6GdGDq2L4Idua+hG2Ut+ccCMH8CE2v/HCTMuk3pzAtoOtxkB8rXPK2KF6m8LUuEdCqPwF2yxVJn8ZxpzAur+DEv8w==";
         Algorithm algorithm = Algorithm.ECDSA384((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_384, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_384, "EC"));
         algorithm.verify(JWT.decode(jwt));
@@ -246,7 +266,7 @@ public class ECDSAAlgorithmTest {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA384withECDSA");
         exception.expectCause(isA(SignatureException.class));
-        exception.expectCause(hasMessage(is("The signature length was invalid. Expected 96 bytes but received 95")));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
 
         byte[] bytes = new byte[95];
         new SecureRandom().nextBytes(bytes);
@@ -292,7 +312,12 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldPassECDSA512VerificationWithDERSignature() throws Exception {
+    public void shouldThrowOnECDSA512VerificationWithDERSignature() throws Exception {
+        exception.expect(SignatureVerificationException.class);
+        exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA512withECDSA");
+        exception.expectCause(isA(SignatureException.class));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
+
         String jwt = "eyJhbGciOiJFUzUxMiJ9.eyJpc3MiOiJhdXRoMCJ9.MIGIAkIB4Ik8MixIeHBFIZkJjquymLzN6Q7DQr2pgw2uJ0/UW726GsDVCsb4RTFeUTTrK+aHZHtHPRoTuTEHCuerwvxo4EICQgGALKocz3lL8qfH1444LNBLaOSNJp3RNkB5YHDEhQEsox21PMA9kau2TcxkOW9jGX6b9N9FhlGo0/mmWFhVCR1YNg==";
         ECKey key = (ECKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_512, "EC");
         Algorithm algorithm = Algorithm.ECDSA512(key);
@@ -307,7 +332,12 @@ public class ECDSAAlgorithmTest {
     }
 
     @Test
-    public void shouldPassECDSA512VerificationWithDERSignatureWithBothKeys() throws Exception {
+    public void shouldThrowECDSA512VerificationWithDERSignatureWithBothKeys() throws Exception {
+        exception.expect(SignatureVerificationException.class);
+        exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA512withECDSA");
+        exception.expectCause(isA(SignatureException.class));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
+
         String jwt = "eyJhbGciOiJFUzUxMiJ9.eyJpc3MiOiJhdXRoMCJ9.MIGIAkIB4Ik8MixIeHBFIZkJjquymLzN6Q7DQr2pgw2uJ0/UW726GsDVCsb4RTFeUTTrK+aHZHtHPRoTuTEHCuerwvxo4EICQgGALKocz3lL8qfH1444LNBLaOSNJp3RNkB5YHDEhQEsox21PMA9kau2TcxkOW9jGX6b9N9FhlGo0/mmWFhVCR1YNg==";
         Algorithm algorithm = Algorithm.ECDSA512((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_512, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_512, "EC"));
         algorithm.verify(JWT.decode(jwt));
@@ -361,7 +391,7 @@ public class ECDSAAlgorithmTest {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA512withECDSA");
         exception.expectCause(isA(SignatureException.class));
-        exception.expectCause(hasMessage(is("The signature length was invalid. Expected 132 bytes but received 131")));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
 
         byte[] bytes = new byte[131];
         new SecureRandom().nextBytes(bytes);
@@ -403,7 +433,7 @@ public class ECDSAAlgorithmTest {
         exception.expect(SignatureVerificationException.class);
         exception.expectMessage("The Token's Signature resulted invalid when verified using the Algorithm: SHA256withECDSA");
         exception.expectCause(isA(SignatureException.class));
-        exception.expectCause(hasMessage(is("Invalid ECDSA signature format.")));
+        exception.expectCause(hasMessage(is("Invalid JOSE signature format.")));
 
         byte[] bytes = new byte[256];
         new SecureRandom().nextBytes(bytes);
@@ -765,7 +795,7 @@ public class ECDSAAlgorithmTest {
 
         byte[] signature = algorithm256.sign(content256.getBytes());
         signature[0] = (byte) 0x02;
-        algorithm256.DERtoJOSE(signature);
+        algorithm256.DERToJOSE(signature);
     }
 
     @Test
@@ -776,9 +806,9 @@ public class ECDSAAlgorithmTest {
         received--;
         derSignature[1] = (byte) received;
         exception.expect(SignatureException.class);
-        exception.expectMessage(String.format("The signature length was invalid. Expected %d bytes but received %d", received + 1, received));
+        exception.expectMessage("Invalid DER signature format.");
 
-        algorithm256.DERtoJOSE(derSignature);
+        algorithm256.DERToJOSE(derSignature);
     }
 
     @Test
@@ -787,9 +817,9 @@ public class ECDSAAlgorithmTest {
         byte[] derSignature = createDERSignature(32, false, false);
         derSignature[3] = (byte) 34;
         exception.expect(SignatureException.class);
-        exception.expectMessage(String.format("The R number length was invalid. Expected at most 33 bytes but received %d", 34));
+        exception.expectMessage("Invalid DER signature format.");
 
-        algorithm256.DERtoJOSE(derSignature);
+        algorithm256.DERToJOSE(derSignature);
     }
 
     @Test
@@ -798,9 +828,9 @@ public class ECDSAAlgorithmTest {
         byte[] derSignature = createDERSignature(32, false, false);
         derSignature[4 + 32 + 1] = (byte) 34;
         exception.expect(SignatureException.class);
-        exception.expectMessage(String.format("The S number length was invalid. Expected at most 33 bytes but received %d", 34));
+        exception.expectMessage("Invalid DER signature format.");
 
-        algorithm256.DERtoJOSE(derSignature);
+        algorithm256.DERToJOSE(derSignature);
     }
 
     @Test
@@ -808,7 +838,7 @@ public class ECDSAAlgorithmTest {
         ECDSAAlgorithm algorithm256 = (ECDSAAlgorithm) Algorithm.ECDSA256((ECPublicKey) readPublicKeyFromFile(PUBLIC_KEY_FILE_256, "EC"), (ECPrivateKey) readPrivateKeyFromFile(PRIVATE_KEY_FILE_256, "EC"));
         byte[] joseSignature = new byte[32 * 2 - 1];
         exception.expect(SignatureException.class);
-        exception.expectMessage(String.format("The signature length was invalid. Expected 64 bytes but received 63", 32 * 2, 32 * 2 - 1));
+        exception.expectMessage("Invalid JOSE signature format.");
 
         algorithm256.JOSEToDER(joseSignature);
     }
@@ -823,7 +853,6 @@ public class ECDSAAlgorithmTest {
             String signature256 = Base64.encodeBase64URLSafeString((signature));
 
             String jwt = content256 + "." + signature256;
-            System.out.println(jwt);
             algorithm256.verify(JWT.decode(jwt));
         }
     }
@@ -838,7 +867,6 @@ public class ECDSAAlgorithmTest {
             String signature384 = Base64.encodeBase64URLSafeString((signature));
 
             String jwt = content384 + "." + signature384;
-            System.out.println(jwt);
             algorithm384.verify(JWT.decode(jwt));
         }
     }
@@ -853,7 +881,6 @@ public class ECDSAAlgorithmTest {
             String signature512 = Base64.encodeBase64URLSafeString((signature));
 
             String jwt = content512 + "." + signature512;
-            System.out.println(jwt);
             algorithm512.verify(JWT.decode(jwt));
         }
     }
@@ -889,22 +916,22 @@ public class ECDSAAlgorithmTest {
 
         //Without padding
         byte[] derSignature = createDERSignature(32, false, false);
-        byte[] joseSignature = algorithm256.DERtoJOSE(derSignature);
+        byte[] joseSignature = algorithm256.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 32, false, false);
 
         //With R padding
         derSignature = createDERSignature(32, true, false);
-        joseSignature = algorithm256.DERtoJOSE(derSignature);
+        joseSignature = algorithm256.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 32, true, false);
 
         //With S padding
         derSignature = createDERSignature(32, false, true);
-        joseSignature = algorithm256.DERtoJOSE(derSignature);
+        joseSignature = algorithm256.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 32, false, true);
 
         //With both paddings
         derSignature = createDERSignature(32, true, true);
-        joseSignature = algorithm256.DERtoJOSE(derSignature);
+        joseSignature = algorithm256.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 32, true, true);
     }
 
@@ -939,22 +966,22 @@ public class ECDSAAlgorithmTest {
 
         //Without padding
         byte[] derSignature = createDERSignature(48, false, false);
-        byte[] joseSignature = algorithm384.DERtoJOSE(derSignature);
+        byte[] joseSignature = algorithm384.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 48, false, false);
 
         //With R padding
         derSignature = createDERSignature(48, true, false);
-        joseSignature = algorithm384.DERtoJOSE(derSignature);
+        joseSignature = algorithm384.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 48, true, false);
 
         //With S padding
         derSignature = createDERSignature(48, false, true);
-        joseSignature = algorithm384.DERtoJOSE(derSignature);
+        joseSignature = algorithm384.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 48, false, true);
 
         //With both paddings
         derSignature = createDERSignature(48, true, true);
-        joseSignature = algorithm384.DERtoJOSE(derSignature);
+        joseSignature = algorithm384.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 48, true, true);
     }
 
@@ -989,22 +1016,22 @@ public class ECDSAAlgorithmTest {
 
         //Without padding
         byte[] derSignature = createDERSignature(66, false, false);
-        byte[] joseSignature = algorithm512.DERtoJOSE(derSignature);
+        byte[] joseSignature = algorithm512.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 66, false, false);
 
         //With R padding
         derSignature = createDERSignature(66, true, false);
-        joseSignature = algorithm512.DERtoJOSE(derSignature);
+        joseSignature = algorithm512.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 66, true, false);
 
         //With S padding
         derSignature = createDERSignature(66, false, true);
-        joseSignature = algorithm512.DERtoJOSE(derSignature);
+        joseSignature = algorithm512.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 66, false, true);
 
         //With both paddings
         derSignature = createDERSignature(66, true, true);
-        joseSignature = algorithm512.DERtoJOSE(derSignature);
+        joseSignature = algorithm512.DERToJOSE(derSignature);
         assertValidJOSESignature(joseSignature, 66, true, true);
     }
 
@@ -1134,6 +1161,5 @@ public class ECDSAAlgorithmTest {
         Assert.assertThat(Arrays.equals(sNumber, sCopy), is(true));
         Assert.assertThat(derSignature.length, is(totalLength));
     }
-
 
 }
